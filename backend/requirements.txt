@@ -1,0 +1,8 @@
+Django==4.0.2
+djangorestframework==3.13.1
+drf-spectacular==0.21.2
+pytz
+gunicorn==20.1.0
+django-heroku==0.3.1
+requests
+cachetools==5.0.0
