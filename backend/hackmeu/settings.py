@@ -2,6 +2,9 @@ import os
 from pathlib import Path
 
 import django_heroku
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -63,11 +66,16 @@ INSTALLED_APPS = [
 
     'auth_p.apps.AuthPConfig',
     'scrap_data.apps.ScrapDataConfig',
+    'contact_farming.apps.ContactFarmingConfig',
+    'market_place.apps.MarketPlaceConfig',
 
     'drf_spectacular',
 ]
 
 REST_FRAMEWORK = {
+    'DEFAULT_PARSER_CLASSES': [
+        'rest_framework.parsers.JSONParser',
+    ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'auth_p.authentication.ExpiringTokenAuthentication',
     ],
@@ -158,8 +166,28 @@ SPECTACULAR_SETTINGS = {
     'TITLE': 'HackMeU API',
     'DESCRIPTION': 'HackMeU API',
     'VERSION': '0.0.1',
+    # 'COMPONENT_SPLIT_REQUEST': True,
 }
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+]
 
 django_heroku.settings(locals())
+
+CSRF_TRUSTED_ORIGINS = ['https://itsrandom.cf']
+
+# setup SMTP server
+EMAIL_HOST = 'smtp.sendgrid.net'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'apikey'
+EMAIL_HOST_PASSWORD = os.environ.get('SENDGRID_API_KEY')
+EMAIL_USE_TLS = True
+
+if not DEBUG:
+    SITE_URL = 'https://itsrandom.cf'
+else:
+    SITE_URL = 'http://127.0.0.1:8000'
+
+DEFAULT_FROM_EMAIL = 'no-reply@itsrandom.cf'

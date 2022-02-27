@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('scrap_data', '0001_initial'),
+        ('scrap_data', '0003_news'),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='latestmandi',
-            name='added_on',
-            field=models.DateTimeField(auto_now_add=True),
+            model_name='news',
+            name='image',
+            field=models.URLField(max_length=255),
         ),
     ]
