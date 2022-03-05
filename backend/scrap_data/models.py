@@ -42,3 +42,19 @@ class LatestMandi(models.Model):
             state=state,
             status=int(data["status"]),
         )
+
+    def __str__(self):
+        return f"{self.commodity} - {self.state}"
+
+
+class News(models.Model):
+    added_on = models.DateTimeField(auto_now_add=True)
+    title = models.CharField(max_length=255)
+    url = models.CharField(max_length=500, unique=True)
+    breaking = models.BooleanField(default=False)
+    image = models.URLField(max_length=1000)
+    source = models.CharField(max_length=100)
+    created_at = models.DateTimeField()
+
+    def __str__(self):
+        return self.title

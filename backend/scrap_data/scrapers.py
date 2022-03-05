@@ -1,15 +1,18 @@
 import abc
 import logging
 import re
-import sys
 import traceback
 from datetime import datetime, timedelta
+from time import sleep
 from typing import Generic, TypeVar
 
+import feedparser
 import requests
+from bs4 import BeautifulSoup
 
 from hackmeu.utils import run_in_thread
 from scrap_data.models import LatestMandi
+from scrap_data.serializers import NewsSerializer
 
 T = TypeVar("T")
 
@@ -59,11 +62,11 @@ class LatestMandiScraper(BaseScraper[None]):
 
     @run_in_thread
     def get_scrape_data(self, from_data: str = None, to_date: str = None):
+        if datetime.now() - self.last_check < timedelta(minutes=40):
+            return
+        self.last_check = datetime.now()
         try:
             logger.info("Latest Mandi Scraper started logger")
-
-            if self.last_check > datetime.now() - timedelta(minutes=40):
-                return
             logger.info(f"Updating mandi prices")
             if not from_data or to_date:
                 from_data, to_date = self.get_from_to_date()
@@ -77,6 +80,7 @@ class LatestMandiScraper(BaseScraper[None]):
             logger.info(f"{len(data)} rows to save")
             logger.info(f"Updating mandi prices")
             for _data in data:
+                sleep(5)
                 try:
                     LatestMandi.save_from_raw_dict(_data)
                     _all_error = False
@@ -84,7 +88,67 @@ class LatestMandiScraper(BaseScraper[None]):
                     logger.error(f"{e}")
                     logger.error(f"{traceback.format_exc()}")
             if not _all_error:
-                self.last_check = datetime.now()
+                logger.info('mandi prices updated successfully')
         except Exception as e:
             logger.error(f"{e}")
             logger.error(f"{traceback.format_exc()}")
+
+
+class NewsScrapper(BaseScraper[None]):
+    def __init__(self):
+        self.api_url = "https://news.google.com/rss/search"
+        self.last_check = datetime.now() - timedelta(hours=1)
+
+    @staticmethod
+    def get_payload(query: str = "agriculture-india", language: str = "en", country: str = "IN") -> dict:
+        return {
+            'q': query,
+            'hl': f'{language}-{country}',
+            'gl': country,
+            'ceid': f'{country}:{language}',
+        }
+
+    @staticmethod
+    def get_image(link):
+        response = requests.get(link)
+        soup = BeautifulSoup(response.text, 'html.parser')
+
+        imgs = soup.find_all('meta', attrs={'property': 'og:image'})
+        if len(imgs) > 0:
+            img = imgs[0]['content']
+            if img.startswith('http'):
+                return img
+        return None
+
+    @staticmethod
+    def clean_date(date):
+        return " ".join(date.split()[:-1])
+
+    @run_in_thread
+    def get_scrape_data(self, *args, **kwargs) -> None:
+        if datetime.now() - self.last_check < timedelta(minutes=40):
+            return
+        self.last_check = datetime.now()
+        feed = feedparser.parse(self.api_url + '?' + '&'.join([k + '=' + v for k, v in self.get_payload().items()]))
+        for item in feed['items']:
+            item['published'] = self.clean_date(item['published'])
+        feed['items'] = sorted(feed['items'],
+                               key=lambda k: datetime.strptime(k['published'], '%a, %d %b %Y %H:%M:%S'),
+                               reverse=True)
+        for item in feed['items']:
+            date = datetime.strptime(item['published'], '%a, %d %b %Y %H:%M:%S')
+            image = self.get_image(item['link'])
+            source = item.get('source', {}).get('title')
+            sleep(5)
+            serializer = NewsSerializer(data={
+                'title': item['title'],
+                'url': item['link'],
+                'created_at': date,
+                'image': image,
+                'source': source,
+            })
+            if serializer.is_valid():
+                serializer.save()
+                logger.info(f"{item['title']} saved")
+            else:
+                logger.error(f"{serializer.errors}")

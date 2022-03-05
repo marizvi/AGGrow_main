@@ -1,5 +1,7 @@
 from rest_framework import serializers
 
+from .models import News
+
 
 class GetLatestMandiGetSerializer(serializers.Serializer):
     state = serializers.CharField(max_length=100, required=False)
@@ -18,3 +20,9 @@ class SendLatestMandiSerializer(serializers.Serializer):
     modal_price = serializers.IntegerField(required=True)
     state = serializers.CharField(max_length=100, required=True)
     status = serializers.IntegerField(required=True)
+
+
+class NewsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = News
+        fields = '__all__'

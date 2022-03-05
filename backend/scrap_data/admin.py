@@ -1,3 +1,6 @@
 from django.contrib import admin
 
-# Register your models here.
+from .models import LatestMandi, News
+
+admin.site.register(LatestMandi)
+admin.site.register(News)

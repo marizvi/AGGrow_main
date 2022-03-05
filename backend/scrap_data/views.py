@@ -3,24 +3,20 @@ import logging
 from drf_spectacular.utils import extend_schema, OpenApiResponse
 from rest_framework import permissions, generics
 from rest_framework import status
-from rest_framework.pagination import PageNumberPagination
+from rest_framework.views import APIView
 
-# from auth_p.authentication import ExpiringTokenAuthentication
 from auth_p.authentication import ExpiringTokenAuthentication
 from auth_p.serializers import ErrorSerializer
-from .models import LatestMandi
-from .scrapers import LatestMandiScraper
-from .serializers import SendLatestMandiSerializer
+from auth_p.utils import Response
+from .models import LatestMandi, News
+from .scrapers import LatestMandiScraper, NewsScrapper
+from .serializers import SendLatestMandiSerializer, NewsSerializer
+from .utils import StandardResultsSetPagination
 
 latestMandiScraper = LatestMandiScraper()
+newsScrapper = NewsScrapper()
 
 logger = logging.getLogger('testlogger')
-
-
-class StandardResultsSetPagination(PageNumberPagination):
-    page_size = 20
-    page_size_query_param = 'page_size'
-    max_page_size = 100
 
 
 @extend_schema(
@@ -51,3 +47,43 @@ class MandiPricesView(generics.ListAPIView):
 
     serializer_class = SendLatestMandiSerializer
     pagination_class = StandardResultsSetPagination
+
+
+@extend_schema(
+    responses={
+        status.HTTP_200_OK: NewsSerializer,
+        status.HTTP_400_BAD_REQUEST: OpenApiResponse(ErrorSerializer, description="Bad request"),
+        status.HTTP_401_UNAUTHORIZED: OpenApiResponse(ErrorSerializer, description="Unauthorized")
+    }
+)
+class NewsListView(generics.ListAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [ExpiringTokenAuthentication]
+
+    def get_queryset(self):
+        newsScrapper.get_scrape_data()
+        return News.objects.filter(breaking=False).order_by('-created_at')
+
+    serializer_class = NewsSerializer
+    pagination_class = StandardResultsSetPagination
+
+
+class BreakingNews(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [ExpiringTokenAuthentication]
+
+    @extend_schema(
+        responses={
+            status.HTTP_200_OK: NewsSerializer,
+            status.HTTP_400_BAD_REQUEST: OpenApiResponse(ErrorSerializer, description="Bad request"),
+            status.HTTP_404_NOT_FOUND: OpenApiResponse(ErrorSerializer, description="No Breaking News"),
+            status.HTTP_401_UNAUTHORIZED: OpenApiResponse(ErrorSerializer, description="Unauthorized")
+        }
+    )
+    def get(self, request):
+        newsScrapper.get_scrape_data()
+        news_queryset = News.objects.filter(breaking=True).order_by('-created_at')
+        if not news_queryset.exists():
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        breaking_news = news_queryset.first()
+        return Response(NewsSerializer(breaking_news), check_valid=False, status=status.HTTP_200_OK)
