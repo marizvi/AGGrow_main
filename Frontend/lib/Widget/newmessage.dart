@@ -51,7 +51,7 @@ class _NewMessageState extends State<NewMessage> {
         queryParams: QueryParameters(knowledgeBaseNames: [
           'projects/hackmeu-gfdi/knowledgeBases/MTUyMzYwMjYwODQ1ODAzOTI5NjA/'
         ]),
-        version: Versions.Beta);
+        version: Versions.V2Beta1);
     // print('responsesesesess: $response');
     String? textResponse = response.text;
     widget.addMsg(textResponse, false, 'Sahayak');
