@@ -49,8 +49,10 @@ class News extends StatelessWidget {
                                   child: FadeInImage(
                                     placeholder:
                                         AssetImage('assets/images/place.png'),
-                                    image: NetworkImage(
-                                        news.breakingNews['image']),
+                                    image: NetworkImage(news.breakingNews !=
+                                            null
+                                        ? news.breakingNews['image']
+                                        : 'https://www.slntechnologies.com/wp-content/uploads/2017/08/ef3-placeholder-image.jpg'),
                                     fit: BoxFit.cover,
                                   ),
                                 ),

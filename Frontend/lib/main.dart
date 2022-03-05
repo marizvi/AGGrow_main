@@ -22,6 +22,7 @@ import 'package:hackathon_app/screens/mandi_screen.dart';
 import 'package:hackathon_app/screens/marketplace.dart';
 import 'package:hackathon_app/screens/mp_detail.dart';
 import 'package:hackathon_app/screens/news_web.dart';
+import 'package:hackathon_app/screens/pesticides_infor.dart';
 import 'package:hackathon_app/screens/policy_detail.dart';
 import 'package:hackathon_app/screens/scheme_detail.dart';
 import 'package:hackathon_app/screens/tabscreen.dart';
@@ -147,6 +148,7 @@ class MyApp extends StatelessWidget {
             '/policy_detail': (ctx) => PolicyDetail(),
             '/scheme_detail': (ctx) => SchemeDetail(),
             '/contract_tab': (ctx) => ContractTab(),
+            '/pesticides_info': (ctx) => PesticidesInfo(),
           },
         ),
       ),

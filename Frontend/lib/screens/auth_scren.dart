@@ -46,7 +46,7 @@ class _AuthScrenState extends State<AuthScren> {
         content: Text(message),
         backgroundColor: Theme.of(context).errorColor,
       ));
-      print('printing error code');
+      // print('printing error code');
       print(error);
     }
   }
