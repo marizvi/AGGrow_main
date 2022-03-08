@@ -35,10 +35,10 @@ import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_config/flutter_config.dart';
 import 'package:alan_voice/alan_voice.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await FlutterConfig.loadEnvVariables();
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
@@ -47,6 +47,11 @@ void main() async {
   FlutterNativeSplash.removeAfter(initialization);
   await dotenv.load();
   // await Location.Location().getLocation();
+  if (kIsWeb) {
+    print('web version');
+  } else {
+    print('notweb');
+  }
   await Permission.locationWhenInUse.request();
   var status = await Permission.location.status;
   if (status.isDenied) {
