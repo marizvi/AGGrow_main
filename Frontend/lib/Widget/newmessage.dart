@@ -47,11 +47,7 @@ class _NewMessageState extends State<NewMessage> {
       ),
     );
     DetectIntentResponse response = await dialogFlowtter.detectIntent(
-        queryInput: queryInput,
-        queryParams: QueryParameters(knowledgeBaseNames: [
-          'projects/hackmeu-gfdi/knowledgeBases/MTUyMzYwMjYwODQ1ODAzOTI5NjA/'
-        ]),
-        version_rec: Versions.V2Beta1);
+        queryInput: queryInput, version_rec: Versions.V2Beta1);
     // print('responsesesesess: $response');
     String? textResponse = response.text;
     widget.addMsg(textResponse, false, 'Sahayak');
